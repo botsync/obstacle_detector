@@ -79,12 +79,12 @@ bool ObstacleExtractor::updateParams(std_srvs::Empty::Request &req, std_srvs::Em
   bool prev_active = p_active_;
 
   nh_local_.param<bool>("active", p_active_, true);
-  nh_local_.param<bool>("use_scan", p_use_scan_, false);
-  nh_local_.param<bool>("use_pcl", p_use_pcl_, true);
+  nh_local_.param<bool>("use_scan", p_use_scan_, true);
+  nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
 
-  nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, true);
-  nh_local_.param<bool>("circles_from_visibles", p_circles_from_visibles_, true);
-  nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
+  nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
+  nh_local_.param<bool>("circles_from_visibles", p_circles_from_visibles_, false);
+  nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, false);
   nh_local_.param<bool>("transform_coordinates", p_transform_coordinates_, true);
 
   nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
@@ -94,8 +94,8 @@ bool ObstacleExtractor::updateParams(std_srvs::Empty::Request &req, std_srvs::Em
   nh_local_.param<double>("max_split_distance", p_max_split_distance_, 0.2);
   nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.2);
   nh_local_.param<double>("max_merge_spread", p_max_merge_spread_, 0.2);
-  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.6);
-  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.25);
+  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.8);
+  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.1);
 
   nh_local_.param<double>("min_x_limit", p_min_x_limit_, -10.0);
   nh_local_.param<double>("max_x_limit", p_max_x_limit_,  10.0);
@@ -106,11 +106,11 @@ bool ObstacleExtractor::updateParams(std_srvs::Empty::Request &req, std_srvs::Em
 
   if (p_active_ != prev_active) {
     if (p_active_) {
-      if (p_use_scan_)
+     /* if (p_use_scan_)
         scan_sub_ = nh_.subscribe("scan", 10, &ObstacleExtractor::scanCallback, this);
       else if (p_use_pcl_)
         pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleExtractor::pclCallback, this);
-
+*/
       obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("raw_obstacles", 10);
     }
     else {
@@ -445,7 +445,8 @@ void ObstacleExtractor::publishObstacles() {
 
   for (const Circle& c : circles_) {
     if (c.center.x > p_min_x_limit_ && c.center.x < p_max_x_limit_ &&
-        c.center.y > p_min_y_limit_ && c.center.y < p_max_y_limit_) {
+        c.center.y > p_min_y_limit_ && c.center.y < p_max_y_limit_) 
+{
         CircleObstacle circle;
 
         circle.center.x = c.center.x;
@@ -458,6 +459,16 @@ void ObstacleExtractor::publishObstacles() {
         obstacles_msg->circles.push_back(circle);
     }
   }
-
   obstacles_pub_.publish(obstacles_msg);
+  setObstacleLocation(*obstacles_msg);
+}
+
+void ObstacleExtractor::setObstacleLocation(Obstacles obs_)
+{
+  global_obstacles = obs_;
+}
+
+void ObstacleExtractor::getObstacleLocation(Obstacles &obs_)
+{
+  obs_ = global_obstacles;
 }
