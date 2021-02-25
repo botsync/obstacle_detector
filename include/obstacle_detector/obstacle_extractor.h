@@ -55,6 +55,16 @@ class ObstacleExtractor
 public:
   ObstacleExtractor(ros::NodeHandle& nh, ros::NodeHandle& nh_local);
   ~ObstacleExtractor();
+  ros::Time stamp_;
+  std::string base_frame_id_;
+  std::list<Point> input_points_;
+  double p_max_circle_radius_;
+  int p_min_group_points_;
+  std::string p_frame_id_;
+
+  void processPoints();
+  void getObstacleLocation(obstacle_detector::Obstacles &obs_);
+
 
 private:
   bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
@@ -63,7 +73,7 @@ private:
 
   void initialize() { std_srvs::Empty empt; updateParams(empt.request, empt.response); }
 
-  void processPoints();
+  //void processPoints();
   void groupPoints();
   void publishObstacles();
 
@@ -85,11 +95,11 @@ private:
   ros::Publisher obstacles_pub_;
   ros::ServiceServer params_srv_;
 
-  ros::Time stamp_;
-  std::string base_frame_id_;
+  //ros::Time stamp_;
+  //std::string base_frame_id_;
   tf::TransformListener tf_listener_;
 
-  std::list<Point> input_points_;
+  //std::list<Point> input_points_;
   std::list<Segment> segments_;
   std::list<Circle> circles_;
 
@@ -103,14 +113,14 @@ private:
   bool p_discard_converted_segments_;
   bool p_transform_coordinates_;
 
-  int p_min_group_points_;
+  //int p_min_group_points_;
 
   double p_distance_proportion_;
   double p_max_group_distance_;
   double p_max_split_distance_;
   double p_max_merge_separation_;
   double p_max_merge_spread_;
-  double p_max_circle_radius_;
+  //double p_max_circle_radius_;
   double p_radius_enlargement_;
 
   double p_min_x_limit_;
@@ -118,7 +128,9 @@ private:
   double p_min_y_limit_;
   double p_max_y_limit_;
 
-  std::string p_frame_id_;
+  //std::string p_frame_id_;
+  obstacle_detector::Obstacles global_obstacles;
+  void setObstacleLocation(obstacle_detector::Obstacles obs_);
 };
 
 } // namespace obstacle_detector
